@@ -10,10 +10,10 @@ echo "Building server on Google Cloud, this may  take a few moments..."
 echo reticulating splines....
 gcloud compute scp $tmpdir/*.groovy  $instancename:~/.  --zone $zone
 echo copied groovy scripts over to remote server
-echo waiting for server instance to come up
+echo waiting for jenkins instance to come up
 
 # Wait for Jenkins to start up
-until pids=$(pidof java)
+while ! pidof java >> /dev/null;
 do   
     sleep 1
 done
