@@ -11,8 +11,13 @@ echo reticulating splines....
 gcloud compute scp $tmpdir/*.groovy  $instancename:~/.  --zone $zone
 echo copied groovy scripts over to remote server
 echo waiting for server instance to come up
-# Give Jenkins a minute to start up. I'll replace this with a loop at some point, or maybe leave that as an exercise for the reader!
-sleep 60
+
+# Wait for Jenkins to start up
+until pids=$(pidof java)
+do   
+    sleep 1
+done
+
 echo configuring security
 gcloud compute ssh $instancename --zone $zone --command 'curl --data-urlencode "script@./configure_ldap.groovy" http://localhost:8080/scriptText'
 
