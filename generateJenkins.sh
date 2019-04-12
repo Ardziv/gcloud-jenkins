@@ -27,10 +27,11 @@ gcloud compute scp $instancename:~/id_rsa.pub ../id_rsa.pub  --zone $zone
 
 echo Executed script to connect Jenkins to LDAP
 echo ===========================================
-echo
-echo
-echo 
 rm -Rf $tmpdir
-echo "Ok, that's all done."
 gcloud compute instances describe --zone $zone  $instancename | grep natIP | awk '{print "Your new Jenkins server is running at http://" $2 ":8080"}'
 echo "To connect your Jenkins instance to your Github, add the key in id_rsa.pub to your GitHub project"
+echo -n "Administrator Password : "
+gcloud compute ssh $instancename --zone $zone --command 'sudo cat /var/lib/jenkins/secrets/initialAdminPassword'
+echo 
+echo 
+echo "Ok, that's all done."
