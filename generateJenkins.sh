@@ -1,21 +1,23 @@
 . ./settings.conf
 mkdir $tmpdir
-cd client_scripts
+cd scripts
 # Jenkins will need to be configured to work with your specific LDAP provider. 
 # Here, we generate a groovy script to make those changes. This script will then be uploaded to the provisioned VM and run
 ./generateCustomLDAPScript.sh > $tmpdir/configure_ldap.groovy
 cp *.groovy $tmpdir
 echo "Building server on Google Cloud, this may  take a few moments..."
 ./create_build_server.sh
+sleep 60
 echo reticulating splines....
 gcloud compute scp $tmpdir/*.groovy  $instancename:~/.  --zone $zone
 echo copied groovy scripts over to remote server
 echo waiting for jenkins instance to come up
 
 # Wait for Jenkins to start up
-while ! pidof java >> /dev/null;
+#while ! gcloud compute ssh $instancename --zone $zone --command 'pidof java' >> /dev/null;
+until pids=$(gcloud compute ssh $instancename --zone $zone --command 'pidof java')
 do   
-    sleep 1
+    sleep 88
 done
 
 echo configuring security
