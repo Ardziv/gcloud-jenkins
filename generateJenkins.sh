@@ -20,9 +20,13 @@ do
     sleep 88
 done
 
+echo get first time admin password
+export admin_init_pass=`gcloud compute ssh $instancename --zone $zone --command 'sudo cat /var/lib/jenkins/secrets/initialAdminPassword'`
+
 echo get jenkins crumb header
-gcloud compute ssh $instancename --zone $zone --command 'curl -v -X GET http://localhost:8080/crumbIssuer/api/json' > $tmpdir/jenkins-crumb-header.log
-crumbHeader = `cat $tmpdir/jenkins-crumb-header.log | grep crumb | head -1 | awk -F : '{print $2}'| awk -F'"' '{print $2}'`
+gcloud compute ssh $instancename --zone $zone --command 'curl -X GET http://localhost:8080/crumbIssuer/api/json --user admin:$admin_init_pass' > $tmpdir/jenkins-crumb-header.json
+
+export crumbHeader = `cat $tmpdir/jenkins-crumb-header.json | grep crumb | head -1 | awk -F : '{print $2}'| awk -F'"' '{print $2}'`
 echo "crumbHeader: $crumbHeader"
 
 echo configuring security
@@ -39,11 +43,10 @@ gcloud compute scp $instancename:~/id_rsa.pub ../id_rsa.pub  --zone $zone
 
 echo Executed script to connect Jenkins to LDAP
 echo ===========================================
-rm -Rf $tmpdir
+#rm -Rf $tmpdir
 gcloud compute instances describe --zone $zone  $instancename | grep natIP | awk '{print "Your new Jenkins server is running at http://" $2 ":8080"}'
 echo "To connect your Jenkins instance to your Github, add the key in id_rsa.pub to your GitHub project"
-echo -n "Administrator Password : "
-gcloud compute ssh $instancename --zone $zone --command 'sudo cat /var/lib/jenkins/secrets/initialAdminPassword'
+echo "Administrator Password : $admin_init_pass"
 echo 
 echo 
 echo "Ok, that's all done."
